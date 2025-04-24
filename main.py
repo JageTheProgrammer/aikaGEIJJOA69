@@ -21,11 +21,12 @@ def search_and_download(query: str):
     file_id = str(uuid.uuid4())
     output_path = os.path.join(DOWNLOAD_DIR, f"{file_id}.mp3")
 
-    command = [
-        "yt-dlp",
-        f"ytsearch1:{query}",
-        "-x", "--audio-format", "mp3",
-        "-o", output_path
+command = [
+    "yt-dlp",
+    f"ytsearch1:{query}",
+    "--cookies-from-browser",  # Automatically uses cookies from browser
+    "-x", "--audio-format", "mp3",
+    "-o", output_path
     ]
     subprocess.run(command, shell=False)
 
