@@ -30,7 +30,7 @@ def search_and_download(query: str):
     subprocess.run(command, shell=False)
 
     if os.path.exists(output_path):
-        return {"status": "success", "file": f"https://88e9-93-106-1-86.ngrok-free.app/play/{file_id}.mp3"}
+        return {"status": "success", "file": f"https://music-t94g.onrender.com/play/{file_id}.mp3"}
     else:
         return {"status": "error", "message": "Download failed"}
 
