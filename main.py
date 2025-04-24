@@ -30,7 +30,7 @@ def search_and_download(query: str):
     subprocess.run(command, shell=False)
 
     if os.path.exists(output_path):
-        return {"status": "success", "file": f"http://localhost:8000/play/{file_id}.mp3"}
+        return {"status": "success", "file": f"https://aikageijjoa69.onrender.com/play/{file_id}.mp3"}
     else:
         return {"status": "error", "message": "Download failed"}
 
