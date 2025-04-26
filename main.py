@@ -45,7 +45,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': filepath,
-        'quiet': True,
+        'quiet': False,  # Set to False to log the download process
         'noplaylist': True,
         'cookies': 'cookies.txt',  # ✅ correct
         'postprocessors': [{
@@ -57,11 +57,17 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([f"ytsearch1:{query}"])
+            print(f"Searching for: {query}")
+            result = ydl.download([f"ytsearch1:{query}"])
+            print(f"Download result: {result}")
     except Exception as e:
+        print(f"Download failed: {str(e)}")
         return {"status": "error", "message": f"Download failed: {str(e)}"}
 
+    # Check if the file exists after the download
     if os.path.exists(filepath):
+        print(f"File downloaded: {filepath}")
         return {"status": "success", "url": f"/file/{filename}"}
     else:
+        print("File not found after download.")
         return {"status": "error", "message": "Music not found or failed to download."}
