@@ -42,24 +42,27 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
     filename = f"{uuid.uuid4()}.mp3"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
 
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': filepath,
-        'quiet': False,  # Set to False to log the download process
-        'noplaylist': True,
-        'cookies': 'cookies.txt',  # ✅ correct
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-    }
+ydl_opts = {
+    'format': 'bestaudio/best',
+    'outtmpl': filepath,
+    'quiet': False,  # Make sure it's not set to quiet
+    'noplaylist': True,
+    'cookies': 'cookies.txt',  # Your cookies file
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
+    'verbose': True  # Enable verbose logging for debugging
+}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             print(f"Searching for: {query}")
-            result = ydl.download([f"ytsearch1:{query}"])
-            print(f"Download result: {result}")
+            result = ydl.download([f"ytsearch10:{query}"])
+            
+            if result != 0:
+                return {"status": "error", "message": "No results found for the song."}
     except Exception as e:
         print(f"Download failed: {str(e)}")
         return {"status": "error", "message": f"Download failed: {str(e)}"}
