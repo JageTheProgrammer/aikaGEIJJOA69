@@ -7,9 +7,11 @@ import uuid
 import threading
 import time
 
+# Directory to store downloaded music
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
+# Function to clean up old downloads (older than 10 minutes)
 def cleanup_downloads():
     while True:
         now = time.time()
@@ -22,10 +24,12 @@ def cleanup_downloads():
                     os.remove(filepath)
         time.sleep(300)  # every 5 minutes
 
+# Start cleanup thread
 threading.Thread(target=cleanup_downloads, daemon=True).start()
 
 app = FastAPI()
 
+# Allow Cross-Origin Resource Sharing
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # later tighten to your frontend URL
@@ -34,11 +38,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Path to the cookies file (ensure you have exported your cookies)
+COOKIES_FILE = 'path_to_your_cookies.txt'
+
 @app.get("/download")
 def download_audio(query: str = Query(..., description="Search term for YouTube")):
     filename = f"{uuid.uuid4()}.mp3"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
 
+    # yt-dlp options with cookies
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': filepath,
@@ -49,6 +57,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
+        'cookies': 'cookies.txt',  # Pass the path to your cookies file here
     }
 
     try:
