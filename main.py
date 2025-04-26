@@ -31,7 +31,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten this to your frontend URL in prod
+    allow_origins=["http://karva.free.nf/"],  # tighten this to your frontend URL in prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -45,7 +45,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': filepath,
-        'quiet': True,
+        'quiet': False,
         'noplaylist': True,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
