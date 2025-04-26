@@ -2,90 +2,72 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import yt_dlp
-import os
-import uuid
-import threading
-import time
+import os, uuid, threading, time
 
-COOKIES_FILE = 'cookies.txt'  # if you saved it directly
-
-
-# Directory to store downloaded music
-DOWNLOAD_DIR = "downloads"
+# ——————— Configuration ———————
+BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
+COOKIES_FILE = os.path.join(BASE_DIR, "cookies.txt")
+DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads")
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-# Function to clean up old downloads (older than 10 minutes)
-def cleanup_downloads():
-    while True:
-        now = time.time()
-        for filename in os.listdir(DOWNLOAD_DIR):
-            filepath = os.path.join(DOWNLOAD_DIR, filename)
-            if os.path.isfile(filepath):
-                file_age = now - os.path.getmtime(filepath)
-                if file_age > 600:  # 10 minutes
-                    print(f"Deleting old file: {filename}")
-                    os.remove(filepath)
-        time.sleep(300)  # every 5 minutes
-
-# Start cleanup thread
-threading.Thread(target=cleanup_downloads, daemon=True).start()
-
 app = FastAPI()
-
-# Allow Cross-Origin Resource Sharing
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # later tighten to your frontend URL
+    allow_origins=["*"],  # tighten to your frontend in prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Path to the cookies file (ensure you have exported your cookies)
-COOKIES_FILE = 'path_to_your_cookies.txt'
+# ——————— Cleanup thread ———————
+def cleanup_downloads():
+    while True:
+        now = time.time()
+        for fn in os.listdir(DOWNLOAD_DIR):
+            fp = os.path.join(DOWNLOAD_DIR, fn)
+            if os.path.isfile(fp) and now - os.path.getmtime(fp) > 600:
+                os.remove(fp)
+        time.sleep(300)
 
+threading.Thread(target=cleanup_downloads, daemon=True).start()
+
+# ——————— Download endpoint ———————
 @app.get("/download")
 def download_audio(query: str = Query(..., description="Search term for YouTube")):
+    # sanity check
+    if not os.path.isfile(COOKIES_FILE):
+        raise RuntimeError(f"❌ cookies.txt not found at {COOKIES_FILE}")
+
     filename = f"{uuid.uuid4()}.mp3"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
 
-    # yt-dlp options with cookies
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': filepath,
-        'quiet': True,  # Set to True for less logs, remove 'verbose'
-        'noplaylist': True,
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
+        "format": "bestaudio/best",
+        "outtmpl": filepath,
+        "quiet": True,
+        "noplaylist": True,
+        "cookiefile": COOKIES_FILE,
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
         }],
-         'cookiefile': COOKIES_FILE,  # <- use 'cookiefile', not 'cookies'
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            print(f"Searching and downloading: {query}")
-            result = ydl.download([f"ytsearch1:{query}"])
-            if result != 0:
-                return {"status": "error", "message": "No results found for the song."}
-
-        if os.path.exists(filepath):
-            print(f"File ready: {filepath}")
-            return {"status": "success", "url": f"/file/{filename}"}
-        else:
-            print("File missing after download attempt.")
-            return {"status": "error", "message": "Music not found or failed to download."}
-
+            ydl.download([f"ytsearch1:{query}"])
     except Exception as e:
-        print(f"Download error: {str(e)}")
         return {"status": "error", "message": f"Download failed: {str(e)}"}
+
+    if os.path.exists(filepath):
+        return {"status": "success", "url": f"/file/{filename}"}
+    return {"status": "error", "message": "File not found after download"}
 
 @app.get("/file/{filename}")
 def serve_file(filename: str):
-    filename = os.path.basename(filename)  # sanitize filename
-    filepath = os.path.join(DOWNLOAD_DIR, filename)
-    if os.path.exists(filepath):
-        return FileResponse(filepath, media_type="audio/mpeg")
-    else:
-        return {"error": "File not found"}
+    safe = os.path.basename(filename)
+    fp   = os.path.join(DOWNLOAD_DIR, safe)
+    if os.path.exists(fp):
+        return FileResponse(fp, media_type="audio/mpeg")
+    return {"error": "File not found"}
