@@ -43,21 +43,21 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
 
     ydl_opts = {
-    'format': 'bestaudio/best',
-    'outtmpl': filepath,
-    'quiet': True,
-    'noplaylist': True,
-    'cookiefile': 'cookies.txt',  # ← Tell yt-dlp to use your cookies
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
-    }],
-}
+        'format': 'bestaudio/best',
+        'outtmpl': filepath,
+        'quiet': True,
+        'noplaylist': True,
+        'cookies': 'cookies.txt',  # ✅ correct
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            result = ydl.download([f"ytsearch1:{query}"])
+            ydl.download([f"ytsearch1:{query}"])
     except Exception as e:
         return {"status": "error", "message": f"Download failed: {str(e)}"}
 
