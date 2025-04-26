@@ -46,6 +46,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
         'format': 'bestaudio/best',
         'outtmpl': filepath,
         'quiet': True,
+        'noplaylist': True,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -53,20 +54,13 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
         }],
     }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([f"ytsearch1:{query}"])
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            result = ydl.download([f"ytsearch1:{query}"])
+    except Exception as e:
+        return {"status": "error", "message": f"Download failed: {str(e)}"}
 
-    return {"url": f"/file/{filename}"}
-
-@app.get("/file/{filename}")
-def serve_file(filename: str):
-    filepath = os.path.join(DOWNLOAD_DIR, filename)
-    if not os.path.exists(filepath):
-        return {"error": "File not found"}
-
-    # Force inline streaming
-    return FileResponse(
-        path=filepath,
-        media_type="audio/mpeg",
-        headers={"Content-Disposition": f'inline; filename="{filename}"'}
-    )
+    if os.path.exists(filepath):
+        return {"status": "success", "url": f"/file/{filename}"}
+    else:
+        return {"status": "error", "message": "Music not found or failed to download."}
