@@ -39,7 +39,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
         raise RuntimeError(f"cookies.txt not found at {COOKIES_FILE!r}")
     with open(COOKIES_FILE) as f:
         yt_lines = [l.strip() for l in f if "youtube.com" in l]
-    print("▶️ YouTube cookies in file:",
+    print("▶️ YouTube cookies in file:", yt_lines)
 
     filename = f"{uuid.uuid4()}.mp3"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
