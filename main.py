@@ -50,6 +50,16 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
         "quiet": True,
         "noplaylist": True,
         "cookiefile": COOKIES_FILE,
+        "http_headers": {
+            # A modern desktop Chrome UA—feel free to update to whatever your browser sends
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/115.0.0.0 Safari/537.36"
+            ),
+            # This helps too
+            "Referer": "https://www.youtube.com/"
+        },
         "postprocessors": [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
