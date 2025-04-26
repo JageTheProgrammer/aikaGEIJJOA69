@@ -7,6 +7,9 @@ import uuid
 import threading
 import time
 
+COOKIES_FILE = 'cookies.txt'  # if you saved it directly
+
+
 # Directory to store downloaded music
 DOWNLOAD_DIR = "downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
@@ -57,7 +60,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'cookies': 'cookies.txt',  # Pass the path to your cookies file here
+         'cookiefile': COOKIES_FILE,  # <- use 'cookiefile', not 'cookies'
     }
 
     try:
