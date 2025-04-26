@@ -47,7 +47,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
         'outtmpl': filepath,
         'quiet': False,
         'noplaylist': True,
-        'cookiesfrombrowser': ('chrome',),  # optional, helps sometimes
+        
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
