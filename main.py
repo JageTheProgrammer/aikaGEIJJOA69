@@ -31,7 +31,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://karva.free.nf/"],  # tighten this to your frontend URL in prod
+    allow_origins=["*"],  # tighten this to your frontend URL in prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
