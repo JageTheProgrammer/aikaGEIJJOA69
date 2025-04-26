@@ -31,7 +31,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # tighten this to your frontend URL in prod
+    allow_origins=["*"],  # tighten this later for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,12 +42,12 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
     filename = f"{uuid.uuid4()}.mp3"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
 
-    ydl_opts = {   # <-- must be indented!
+    ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': filepath,
         'quiet': False,
         'noplaylist': True,
-        'cookies': 'cookies.txt',
+        'cookiesfrombrowser': ('chrome',),  # optional, helps sometimes
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -59,8 +59,7 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             print(f"Searching for: {query}")
-            result = ydl.download([f"ytsearch10:{query}"])
-            
+            result = ydl.download([f"ytsearch1:{query}"])
             if result != 0:
                 return {"status": "error", "message": "No results found for the song."}
     except Exception as e:
@@ -73,3 +72,11 @@ def download_audio(query: str = Query(..., description="Search term for YouTube"
     else:
         print("File not found after download.")
         return {"status": "error", "message": "Music not found or failed to download."}
+
+@app.get("/file/{filename}")
+def serve_file(filename: str):
+    filepath = os.path.join(DOWNLOAD_DIR, filename)
+    if os.path.exists(filepath):
+        return FileResponse(filepath, media_type="audio/mpeg")
+    else:
+        return {"error": "File not found"}
