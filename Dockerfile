@@ -2,7 +2,7 @@
 FROM python:3.11-slim
 
 # Install ffmpeg (needed for yt-dlp to extract mp3)
-RUN apt-get update && apt-get install -y ffmpeg
+RUN pip install --upgrade pip yt-dlp apt-get update && apt-get install -y ffmpeg
 
 # Set working directory
 WORKDIR /app
