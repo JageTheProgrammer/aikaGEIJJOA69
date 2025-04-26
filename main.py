@@ -34,9 +34,12 @@ threading.Thread(target=cleanup_downloads, daemon=True).start()
 # ——————— Download endpoint ———————
 @app.get("/download")
 def download_audio(query: str = Query(..., description="Search term for YouTube")):
-    # sanity check
+    # 1) sanity check the cookies file
     if not os.path.isfile(COOKIES_FILE):
-        raise RuntimeError(f"❌ cookies.txt not found at {COOKIES_FILE}")
+        raise RuntimeError(f"cookies.txt not found at {COOKIES_FILE!r}")
+    with open(COOKIES_FILE) as f:
+        yt_lines = [l.strip() for l in f if "youtube.com" in l]
+    print("▶️ YouTube cookies in file:",
 
     filename = f"{uuid.uuid4()}.mp3"
     filepath = os.path.join(DOWNLOAD_DIR, filename)
